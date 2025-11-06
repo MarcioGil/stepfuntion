@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/stepfuntion/frontend/static/js/main.d176b20c.js",
+    "index.html": "/stepfuntion/frontend/index.html",
+    "main.d176b20c.js.map": "/stepfuntion/frontend/static/js/main.d176b20c.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.d176b20c.js"
+  ]
+}
