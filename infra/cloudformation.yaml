@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS Step Functions E-commerce Workflow
+
+Parameters:
+  Environment:
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Prod
+
+Resources:
+  # 1. Funções Lambda (Stubs para o exemplo)
+  ValidateOrderLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.9
+      Code:
+        ZipFile: |
+          import json
+          def handler(event, context):
+              # Simula a validação do pedido
+              order_id = event.get('orderId')
+              if order_id and order_id.startswith('VALID'):
+                  return {"status": "VALID", "orderId": order_id, "message": "Pedido validado com sucesso."}
+              else:
+                  return {"status": "INVALID", "orderId": order_id, "message": "Pedido inválido."}
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Sub "ValidateOrderLambda-${Environment}"
+
+  ProcessPaymentLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.9
+      Code:
+        ZipFile: |
+          import json
+          def handler(event, context):
+              # Simula o processamento de pagamento
+              event['paymentStatus'] = 'PAID'
+              event['message'] = 'Pagamento processado.'
+              return event
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Sub "ProcessPaymentLambda-${Environment}"
+
+  ShipOrderLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.9
+      Code:
+        ZipFile: |
+          import json
+          def handler(event, context):
+              # Simula o envio do pedido
+              event['shippingStatus'] = 'SHIPPED'
+              event['message'] = 'Pedido enviado.'
+              return event
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Sub "ShipOrderLambda-${Environment}"
+
+  # 2. Perfil de Execução para Lambdas
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # 3. Perfil de Execução para Step Functions
+  StepFunctionsExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaInvokePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource:
+                  - !GetAtt ValidateOrderLambda.Arn
+                  - !GetAtt ProcessPaymentLambda.Arn
+                  - !GetAtt ShipOrderLambda.Arn
+
+  # 4. Definição do Step Function
+  EcommerceWorkflow:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub "EcommerceOrderWorkflow-${Environment}"
+      DefinitionString: |
+        {
+          "Comment": "Workflow de Processamento de Pedidos de E-commerce",
+          "StartAt": "Validar Pedido",
+          "States": {
+            "Validar Pedido": {
+              "Type": "Task",
+              "Resource": !GetAtt ValidateOrderLambda.Arn,
+              "Next": "Escolher Processamento"
+            },
+            "Escolher Processamento": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Variable": "$.status",
+                  "StringEquals": "VALID",
+                  "Next": "Processar Pagamento"
+                },
+                {
+                  "Variable": "$.status",
+                  "StringEquals": "INVALID",
+                  "Next": "Falha no Pedido"
+                }
+              ],
+              "Default": "Falha no Pedido"
+            },
+            "Processar Pagamento": {
+              "Type": "Task",
+              "Resource": !GetAtt ProcessPaymentLambda.Arn,
+              "Next": "Enviar para Expedição"
+            },
+            "Enviar para Expedição": {
+              "Type": "Task",
+              "Resource": !GetAtt ShipOrderLambda.Arn,
+              "Next": "Sucesso no Pedido"
+            },
+            "Sucesso no Pedido": {
+              "Type": "Succeed"
+            },
+            "Falha no Pedido": {
+              "Type": "Fail",
+              "Cause": "O pedido não pôde ser processado.",
+              "Error": "OrderProcessingFailed"
+            }
+          }
+        }
+      RoleArn: !GetAtt StepFunctionsExecutionRole.Arn
+
+Outputs:
+  StateMachineArn:
+    Description: O ARN da Step Function State Machine
+    Value: !Ref EcommerceWorkflow
+  StateMachineName:
+    Description: O nome da Step Function State Machine
+    Value: !GetAtt EcommerceWorkflow.Name

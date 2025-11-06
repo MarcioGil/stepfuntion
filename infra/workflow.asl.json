@@ -1,0 +1,45 @@
+{
+  "Comment": "Workflow de Processamento de Pedidos de E-commerce",
+  "StartAt": "Validar Pedido",
+  "States": {
+    "Validar Pedido": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:ValidateOrderLambda",
+      "Next": "Escolher Processamento"
+    },
+    "Escolher Processamento": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.status",
+          "StringEquals": "VALID",
+          "Next": "Processar Pagamento"
+        },
+        {
+          "Variable": "$.status",
+          "StringEquals": "INVALID",
+          "Next": "Falha no Pedido"
+        }
+      ],
+      "Default": "Falha no Pedido"
+    },
+    "Processar Pagamento": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:ProcessPaymentLambda",
+      "Next": "Enviar para Expedição"
+    },
+    "Enviar para Expedição": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:ShipOrderLambda",
+      "Next": "Sucesso no Pedido"
+    },
+    "Sucesso no Pedido": {
+      "Type": "Succeed"
+    },
+    "Falha no Pedido": {
+      "Type": "Fail",
+      "Cause": "O pedido não pôde ser processado.",
+      "Error": "OrderProcessingFailed"
+    }
+  }
+}
