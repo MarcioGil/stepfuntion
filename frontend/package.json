@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "Frontend visual para simulação de pedidos e acompanhamento do workflow AWS Step Functions.",
-  "homepage": "https://marciogil.github.io/stepfuntion/frontend",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
