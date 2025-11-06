@@ -1,29 +1,40 @@
-# Projeto de Exemplo: Workflow de Processamento de Pedidos de E-commerce com AWS Step Functions
+🛒 Workflow de Processamento de Pedidos de E-commerce com AWS Step Functions
 
-Este projeto demonstra um fluxo de trabalho de processamento de pedidos de e-commerce utilizando o **AWS Step Functions** para orquestrar diferentes serviços AWS (neste caso, AWS Lambda).
+Este projeto demonstra um fluxo de trabalho de processamento de pedidos de e-commerce utilizando AWS Step Functions para orquestrar diferentes serviços AWS — especialmente AWS Lambda — simulando um ambiente real de automação empresarial.
 
-## ⚙️ Detalhes Técnicos
+✨ Sobre o Projeto
 
-### 1. Arquitetura
+A proposta deste projeto é reproduzir, de forma simples e didática, como um fluxo empresarial pode ser automatizado através de uma máquina de estados.
+O objetivo é mostrar como a computação em nuvem pode ser usada para estruturar sistemas que exigem organização, tomada de decisão, resiliência e execução confiável.
 
-A arquitetura é baseada em um fluxo de trabalho sequencial e de escolha (Choice State) para garantir que as etapas críticas de um pedido sejam executadas na ordem correta e com tratamento de falhas.
+Trabalhar com o Step Functions me permitiu compreender melhor:
 
-O fluxo é composto pelas seguintes etapas:
+Como orquestrar múltiplos serviços de maneira clara;
 
-| Etapa (State) | Tipo | Função |
-| :--- | :--- | :--- |
-| **Validar Pedido** | `Task` (AWS Lambda) | Verifica a integridade e a validade do pedido. |
-| **Escolher Processamento** | `Choice` | Decide o próximo passo com base no resultado da validação (`status: VALID` ou `status: INVALID`). |
-| **Processar Pagamento** | `Task` (AWS Lambda) | Simula a cobrança do cliente. Executado apenas se o pedido for válido. |
-| **Enviar para Expedição** | `Task` (AWS Lambda) | Simula a preparação e envio do produto. |
-| **Sucesso no Pedido** | `Succeed` | Estado final de sucesso. |
-| **Falha no Pedido** | `Fail` | Estado final de falha, acionado por um pedido inválido. |
+Como estruturar fluxos condicionais usando Choice States;
 
-### 2. Definição do Workflow (ASL - Amazon States Language)
+Como lidar com falhas e sucessos em processos críticos;
 
-O workflow é definido em JSON usando a Amazon States Language (ASL). O arquivo `infra/workflow.asl.json` contém a definição pura.
+Como a AWS facilita a criação de pipelines reais de produção.
 
-```json
+Foi um exercício importante para transformar teoria em prática e entender como arquiteturas baseadas em eventos podem melhorar operações reais — especialmente no e-commerce, onde cada etapa conta.
+
+⚙️ Detalhes Técnicos
+1. Arquitetura
+
+A solução utiliza um fluxo sequencial e condicional, garantindo que cada etapa seja processada com segurança.
+
+Etapa (State)	Tipo	Função
+Validar Pedido	Task (AWS Lambda)	Verifica integridade e validade do pedido.
+Escolher Processamento	Choice	Decide o caminho com base no status (VALID / INVALID).
+Processar Pagamento	Task (AWS Lambda)	Simula a cobrança quando o pedido é válido.
+Enviar para Expedição	Task (AWS Lambda)	Simula preparação e envio do produto.
+Sucesso no Pedido	Succeed	Estado final positivo.
+Falha no Pedido	Fail	Estado final negativo.
+2. Definição do Workflow (ASL – Amazon States Language)
+
+Arquivo: infra/workflow.asl.json
+
 {
   "Comment": "Workflow de Processamento de Pedidos de E-commerce",
   "StartAt": "Validar Pedido",
@@ -69,18 +80,38 @@ O workflow é definido em JSON usando a Amazon States Language (ASL). O arquivo 
     }
   }
 }
-```
 
-### 3. Implantação (Infraestrutura como Código - CloudFormation)
+3. Implantação com CloudFormation
 
-A infraestrutura completa (Step Function, Funções Lambda e Perfis IAM) é definida no arquivo `infra/cloudformation.yaml`.
+Arquivo: infra/cloudformation.yaml
 
-- **Funções Lambda (Stubs):** Três funções Lambda de exemplo (`ValidateOrderLambda`, `ProcessPaymentLambda`, `ShipOrderLambda`) são criadas com código Python simples (inline) para simular as operações.
-- **IAM Roles:** Perfis de execução são configurados para permitir que as Lambdas sejam executadas e que o Step Function invoque as Lambdas.
-- **State Machine:** A máquina de estados é criada usando a definição ASL, com os ARNs das Lambdas injetados dinamicamente pelo CloudFormation.
+A pilha cria automaticamente:
 
-## 🔗 Link para a Step Function
+✅ 3 Lambdas simples (inline em Python)
 
-**Atenção:** O link abaixo será preenchido após a implantação na AWS.
+✅ Roles IAM para execução
 
-[Link para a Step Function no Console AWS] (COLE AQUI O LINK DA SUA STEP FUNCTION APÓS A CRIAÇÃO)
+✅ Step Function integrada aos ARNs das Lambdas
+
+✅ Máquina de estados pronta para uso
+
+👤 Minha Apresentação
+
+Sou um apaixonado por educação, tecnologia e inovação social. Acredito profundamente que o conhecimento transforma vidas, abre portas e reduz desigualdades — especialmente para quem nem sempre teve acesso às mesmas oportunidades.
+
+Como estudante de Engenharia de Software, busco sempre unir teoria e prática, desenvolvendo projetos que não servem apenas como código, mas como aprendizado, evolução e compreensão real do impacto que a tecnologia pode gerar.
+
+Este projeto com AWS Step Functions nasceu exatamente desse espírito: aprender construindo. Ao simular um sistema completo de processamento de pedidos de e-commerce, pude entender, de maneira objetiva e humana, como fluxos automatizados podem tornar operações mais organizadas, seguras e eficientes.
+
+Na DIO encontrei um ambiente que incentiva o aprendizado contínuo, a troca de conhecimento e o crescimento coletivo. Sigo caminhando com humildade, propósito e vontade de contribuir com uma comunidade tech mais inclusiva, colaborativa e humana.
+
+🌐 Meus Links
+
+LinkedIn: https://linkedin.com/in/márcio-gil-1b7669309
+
+Portfólio Pessoal: https://marciogil.github.io/curriculum-vitae/
+
+GitHub Pessoal: https://github.com/MarcioGil/MarcioGil.git
+
+📂 Repositório do Projeto:
+https://github.com/MarcioGil/Sistema_Integrador_Empresarial
